@@ -1,18 +1,50 @@
-meme_dict = {
-            "CRINGE": "Algo excepcionalmente raro o embarazoso",
-            "LOL": "Una respuesta común a algo gracioso",
-            "SHEESH" : "Ligera desaprobación",
-            "CREEPY": "Aterrador, siniestro",
-            "WTF": "Expresion de gran sorpresa"
-            }
-print("Hola, sea bienvenido al programa de DICCIONARIO MODERNO, escriba alguna palabra que usted desconozca")
+import discord
+from discord.ext import commands
+import random
+import asyncio
 
-for i in range(5):
-    word = input("Escribe una palabra que no entiendas (¡con mayúsculas!): ")
-    
-    if word in meme_dict.keys():
-    
-        print(meme_dict[word])
+intents = discord.Intents.default()
+intents.message_content = True
+
+bot = commands.Bot(command_prefix='$', intents=intents)
+
+@bot.event
+async def on_ready():
+    print(f'We have logged in as {bot.user}')
+
+@bot.command()
+async def hello(ctx):
+    await ctx.send(f'Hola, soy un bot {bot.user}!')
+
+@bot.command()
+async def heh(ctx, count_heh = 5):
+    await ctx.send("he" * count_heh)
+
+@bot.command()
+async def guess(ctx):
+    await ctx.send('Guess a number between 1 and 10.')
+
+    def is_correct(m):
+        return m.author == ctx.author and m.content.isdigit()
+
+    answer = random.randint(1, 10)
+
+    try:
+        guess_msg = await bot.wait_for(
+            'message',
+            check=is_correct,
+            timeout=5.0
+        )
+    except asyncio.TimeoutError:
+        await ctx.send(
+            f'Sorry, you took too long. It was {answer}.'
+        )
+        return
+
+    if int(guess_msg.content) == answer:
+        await ctx.send('You are right!')
     else:
-    
-        print("No tenemos esa palabra en el diccionario, pero no te preocupes pronto añadiremos tu sugerencia")
+        await ctx.send(f'Oops. It is actually {answer}.')
+
+
+bot.run()
